@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  mysqldb:
+    image: mysql:8.0
+    ports:
+      - "3307:3306"
+    environment:
+      MYSQL_DATABASE: crypto
+      MYSQL_ROOT_PASSWORD: Siva@2000
+
+  spring_app:
+    build:
+      context: ./Cryptocurrency-Management-System-Backend
+      dockerfile: Dockerfile
+    ports:
+      - "8081:8081"
+    depends_on:
+      - mysqldb
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysqldb:3306/crypto
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: Siva@2000
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_DATASOURCE_DRIVER_CLASS_NAME: com.mysql.cj.jdbc.Driver
+      SPRING_JPA_SHOW_SQL: "true"
+
+  react_web_app:
+    build:
+      context: ./Crypto-Currency-Management-System
+      dockerfile: Dockerfile
+    ports:
+      - "3000:80"
+    depends_on:
+      - spring_app
+
+  nginx:
+    image: nginx:1.25.1
+    ports:
+      - "80:80"
+    volumes:
+      - ./Crypto-Currency-Management-System/.docker/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - react_web_app
